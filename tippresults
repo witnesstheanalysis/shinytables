@@ -78,9 +78,6 @@ attach (versus)
 teams <- read.csv(file="PATHTOTEAMNAMES.csv", header=TRUE, sep=";")
 attach (teams) 
 
-teams <- teams %>% mutate (team = str_to_title(team))
-
-
 ```
 
 RESULTS {data-orientation=rows}
