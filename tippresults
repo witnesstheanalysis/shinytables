@@ -1,0 +1,337 @@
+---
+title: "Tipperary Senior Hurling Championship 1887-2020"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    orientation: columns
+    navbar:
+      - { title: "DATA AND CODES", href: "", align: right}
+      - { icon: "fa-twitter", href: "https://twitter.com/sixtwofourtwo", align: right}
+runtime: shiny      
+    
+---
+
+
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, options(knitr.kable.NA = ''))
+
+## Load packages and pitch ##
+#install.packages('digest', repos='http://cran.us.r-project.org')
+suppressPackageStartupMessages(library (digest))
+suppressPackageStartupMessages(library(flexdashboard))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(deldir))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggrepel))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(rmarkdown))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(gridExtra))
+suppressPackageStartupMessages(library(igraph))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(treemap))
+suppressPackageStartupMessages(library(plotly))
+suppressPackageStartupMessages(library(networkD3))
+suppressPackageStartupMessages(library (curl))
+suppressPackageStartupMessages(library(formattable))
+suppressPackageStartupMessages(library(grid))
+suppressPackageStartupMessages(library(yaml))
+suppressPackageStartupMessages(library(tinytex))
+suppressPackageStartupMessages(library(ggforce))
+suppressPackageStartupMessages(library(waffle))
+suppressPackageStartupMessages(library(ggnewscale))
+suppressPackageStartupMessages(library(factoextra))
+suppressPackageStartupMessages(library(cluster))
+suppressPackageStartupMessages(library(tidyquant))
+suppressPackageStartupMessages(library(parallel))
+suppressPackageStartupMessages(library(ggExtra))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(sp))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(plotly))
+suppressPackageStartupMessages(library(tidymodels))
+suppressPackageStartupMessages(library(tidytext))
+suppressPackageStartupMessages(library(RGraphics))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(magick))
+suppressPackageStartupMessages(library(patchwork))
+suppressPackageStartupMessages(library(ggiraph))
+suppressPackageStartupMessages(library(gghighlight))
+
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+```{r}
+
+
+versus <- read.csv(file="PATHTORESULTS", header=TRUE, sep=";")
+attach (versus) 
+
+
+
+teams <- read.csv(file="PATHTOTEAMNAMES.csv", header=TRUE, sep=";")
+attach (teams) 
+
+teams <- teams %>% mutate (team = str_to_title(team))
+
+
+```
+
+RESULTS {data-orientation=rows}
+=====================================  
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+### Select 
+
+```{r}
+
+selectInput('vsteam', 'Team',   choices = c("All",unique(teams$team)),selected = "All")
+
+selectInput('vsyear', 'Year',   choices = c("All",unique(versus$year)),selected = "All")
+
+selectInput('vsopp', 'Opponent',  choices = c("All",unique(teams$team)),selected = "All")
+
+```
+
+
+Row {data-height =10}
+-------------------------------------
+
+### PLAYED
+
+```{r}
+
+
+plyd  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(gmeplya = sum (teama == input$vsteam),
+              gmeplyb = sum (teamb == input$vsteam),
+              totply = (gmeplya + gmeplyb)) %>% select (totply)})
+
+
+
+# Emit the download count
+renderValueBox({valueBox(plyd (), icon = "fas fa-baseball-ball")})
+
+```
+
+
+###  WON
+
+```{r}
+
+won  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(won = sum (won == input$vsteam))  %>% select (won)})
+
+
+# Emit the download count
+renderValueBox({
+  valueBox(won (),color = "green", icon = "fa-check")
+})
+```
+
+
+###  LOST
+
+```{r}
+
+loss <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(loss = sum (loss == input$vsteam))  %>% select (loss)})
+
+
+
+# Emit the download count
+renderValueBox({
+  valueBox(loss (), color = "red", icon = "fa-times")
+})
+```
+
+###  DRAWS
+
+
+```{r}
+
+draw  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(gmeplya = sum (teama == input$vsteam),
+              gmeplyb = sum (teamb == input$vsteam),
+              totply = (gmeplya + gmeplyb),
+              won = sum (won == input$vsteam),loss = sum (loss == input$vsteam), 
+              draw = (totply - (won + loss)))  %>% select (draw)})
+
+
+# Emit the download count
+renderValueBox({valueBox(round(draw()),color = "teal", icon = "fa-equals")})
+
+
+```
+
+### WIN %
+
+```{r}
+
+perc  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(gmeplya = sum (teama == input$vsteam|teamb == input$vsteam),
+              won = sum (won == input$vsteam),loss = sum (teamb == input$vsteam), 
+              perc = (won/gmeplya*100)
+            )  %>% select (perc)})
+
+
+
+# Emit the download count
+renderValueBox({valueBox(round(perc()),color = "purple", icon = "fa-percentage")})
+
+
+```
+
+### GOALS FOR
+
+```{r}
+
+gols  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(
+              goalscra = sum (goalsa[teama == input$vsteam]),
+              goalscrb = sum (goalsb[teamb == input$vsteam]),
+              totgol = (goalscra + goalscrb))  %>% select (totgol)})
+
+# Emit the download count
+renderValueBox({valueBox(round(gols()),color = "green", icon = "fa-plus")})
+
+
+```
+
+### GOALS AGAINST
+
+```{r}
+
+golscon  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                         input$vsteam == "All"| teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(
+              golcona = sum (goalsb[teama == input$vsteam]),
+              golconb = sum (goalsa[teamb == input$vsteam]),
+              totgols = (golcona + golconb))  %>% select (totgols)})
+
+
+# Emit the download count
+renderValueBox({valueBox(round(golscon()),color = "blue", icon = "fa-minus")})
+
+
+```
+
+### POINTS FOR 
+
+```{r}
+
+pts  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(
+              pointscra = sum (pointsa[teama == input$vsteam]),
+              pointscrb = sum (pointsb[teamb == input$vsteam]),
+              totpt = (pointscra + pointscrb))  %>% select (totpt)})
+
+
+# Emit the download count
+renderValueBox({valueBox(round(pts()),color = "teal", icon = "fa-plus")})
+
+
+```
+
+### POINTS AGAINST
+
+```{r}
+
+ptscon  <- reactive({ versus %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(
+              pointcona = sum (pointsb[teama == input$vsteam]),
+              pointconb = sum (pointsa[teamb == input$vsteam]),
+              totpts = (pointcona + pointconb))  %>% select (totpts)})
+
+
+# Emit the download count
+renderValueBox({valueBox(round(ptscon()),color = "orange", icon = "fa-minus")})
+
+
+```
+
+
+### SCORED
+
+```{r}
+
+
+#versusscr <- versus[versus$date!="wo", ]
+
+totscrall  <- reactive({ versus  %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(
+              totscrda = sum (totscrsa[teama == input$vsteam]), 
+              totscrdb = sum (totscrsb[teamb == input$vsteam]), 
+              totscrall = (totscrda + totscrdb))  %>% select (totscrall)})
+
+
+
+# Emit the download count
+renderValueBox({valueBox(round(totscrall()),color = "olive", icon = "fa-plus")})
+
+
+```
+
+### CONCEDED
+
+```{r}
+
+concd  <- reactive({ versus  %>% filter (input$vsyear == "All" |year == input$vsyear,
+                                          input$vsteam == "All" |teama == input$vsteam|teamb == input$vsteam,
+                                          input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp) %>%
+    summarize(totscona = sum (totscrsb[teama == input$vsteam]),
+              totsconb = sum (totscrsa[teamb == input$vsteam]),
+              totsconall = (totscona + totsconb))  %>% select (totsconall)})
+
+# Emit the download count
+renderValueBox({valueBox(round(concd()),color = "maroon", icon = "fa-minus")})
+
+```
+
+
+
+Row{data-height=100,data-width=850}
+-----------------------------------------------------------------------
+
+```{r}
+
+
+valuesvs <- reactive({versus %>% filter (input$vsyear == "All" |year == input$vsyear, 
+                                         input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                         input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp)%>% 
+                                         select(-2,-21) %>% 
+                                         rename( "team A" = teama, "team B" = teamb,"Score A" = scorea, "Score B" = scoreb ,"Total A" = totscrsa, "Total B" = totscrsb ) %>%                                                         rename_all(toupper)})
+
+
+  
+renderDataTable({datatable(valuesvs(),options = list(lengthMenu = c(5, 15, 30, 50), pageLength = 15), rownames = FALSE)})
+```
+
