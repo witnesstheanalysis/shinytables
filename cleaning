@@ -1,0 +1,58 @@
+
+### Scores ###
+
+
+# pull numbers from before a decimal place 
+# This bit may not be needed 
+
+#champ$scorea <- str_replace_all(champ$scorea, ",", ".")
+#champ$scoreb <- str_replace_all(champ$scoreb, ",", ".")
+
+champ <- champ %>% dplyr::mutate(goalsa = str_extract(scorea, "^[^,]+"))
+
+# pull numbers from after a decimal place 
+champ <- champ %>% dplyr::mutate(pointsa = str_extract(scorea, "[^,]+$"))
+
+# team b
+champ <- champ %>% dplyr::mutate(goalsb = str_extract(scoreb, "^[^,]+"))
+
+# pull numbers from after a decimal place 
+champ <- champ %>% dplyr::mutate(pointsb = str_extract(scoreb, "[^,]+$"))
+
+# change to numeric
+
+champ$goalsa <- as.numeric(champ$goalsa)
+champ$goalsb <- as.numeric(champ$goalsb)
+champ$pointsa <- as.numeric(champ$pointsa)
+champ$pointsb <- as.numeric(champ$pointsb)
+
+
+# You can just change the 5 to a 3 to keep it as normal 
+
+champ <- champ%>%group_by(teama)%>%mutate(totgolsa = ifelse(champyear < 1896, goalsa * 5, goalsa *3), totgolsb = ifelse(champyear < 1896, goalsb * 5, goalsb *3), 
+                                      totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
+
+# won/loss
+champ <- champ%>%group_by(teama) %>% mutate(won = ifelse(totscrsa > totscrsb , teama, "Draw"))
+champ <- champ%>%group_by(teama) %>% mutate(loss = ifelse(totscrsb < totscrsa , teamb, "Draw"))
+
+# change wo na's to nan
+na_to_space <- function(x) ifelse(is.na(x),"NAN",x)
+champ <- champ %>% mutate_if(.predicate = is.character,.funs = na_to_space)
+
+# replace na's with 0
+champ [is.na(champ)] <- 0
+
+
+# change nan to win/loss team
+champ <- champ %>%group_by(teama) %>% mutate(won= ifelse(won == "NAN",teama,won), loss = ifelse(loss == "NAN",teamb,loss))
+
+champ <- champ %>% mutate(margin =(abs(totscrsa - totscrsb)))
+
+## merge these into one list ## 
+
+champ <- champ %>% mutate(game_pts = (totscrsa + totscrsb))
+
+champ <- champ %>% mutate(game_scrs = (goalsa + pointsa + goalsb + pointsb))
+
+champ$gameno <- row.names(champ)
