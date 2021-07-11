@@ -3,6 +3,10 @@
 
 # https://docs.google.com/spreadsheets/d/1i6bk46AiEnC9bT_E0HJkdrq6qSE8mkMsKveo9FmztwE/edit?usp=sharing
 
+## How to Install a Package if needed ##
+
+#install.packages("PACKAGENAME")
+
 ## Load Packages ##
 
 library(tidyverse)
