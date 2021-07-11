@@ -1,58 +1,171 @@
 
-### Scores ###
+## Down load data from ## 
+
+# https://docs.google.com/spreadsheets/d/1i6bk46AiEnC9bT_E0HJkdrq6qSE8mkMsKveo9FmztwE/edit?usp=sharing
+
+## Load Packages ##
+
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(tidytext)
+
+## Loading Data ## 
+
+versus <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
+attach (versus) 
+
+# To view the initial data (Remove '#' from #view (versus) ) # 
+
+# view (versus) - this opens another tab #
+
+# Removing the objections column #
+
+versus <-  versus %>% select (-8)
+
+# Removing fadas etc #
+# Replace walkover and scratch to wo won and wo loss #  
+# Change - to . in scores #
+# Using detect to find the string that contained the word to Remove County Tipperary SHC () # 
 
 
-# pull numbers from before a decimal place 
-# This bit may not be needed 
+versus <-versus %>% mutate (
+  teama = str_replace_all(teama, "'", " "),
+  teama = str_replace_all(teama, "á", "a"),
+  teama = str_replace_all(teama, "í", "i"),
+  teama = str_replace_all(teama, "ú", "u"),
+  teama = str_replace_all(teama, "ó", "o"),
+  teama = str_replace_all(teama, "é", "e"),
+  teamb = str_replace_all(teamb, "'", " "),
+  teamb = str_replace_all(teamb, "á", "a"),
+  teamb = str_replace_all(teamb, "í", "i"),
+  teamb = str_replace_all(teamb, "ú", "u"),
+  teamb = str_replace_all(teamb, "ó", "o"),
+  teamb = str_replace_all(teamb, "é", "e"),
+  scorea = str_replace_all(scorea, "Walkover", "wo won"),
+  scoreb = str_replace_all(scoreb, "Scratch", "wo loss"),
+  scorea = str_replace_all(scorea, "-", "."),
+  scoreb = str_replace_all(scoreb, "-", "."),
+  comp = case_when(
+    str_detect(comp, "Dan Breen Cup") ~ "Dan Breen Cup",
+    str_detect(comp, "Relegation") ~ "Relegation",
+    str_detect(comp, "Séamus Ó Riain Cup") ~ "Seamus O Riain Cup",
+    TRUE ~ comp))
 
-#champ$scorea <- str_replace_all(champ$scorea, ",", ".")
-#champ$scoreb <- str_replace_all(champ$scoreb, ",", ".")
+## Scores ##
 
-champ <- champ %>% dplyr::mutate(goalsa = str_extract(scorea, "^[^,]+"))
+# pull numbers from before a decimal place #
 
-# pull numbers from after a decimal place 
-champ <- champ %>% dplyr::mutate(pointsa = str_extract(scorea, "[^,]+$"))
+versus <- versus %>% dplyr::mutate(goalsa = str_extract(scorea, "^[^.]+"))
 
-# team b
-champ <- champ %>% dplyr::mutate(goalsb = str_extract(scoreb, "^[^,]+"))
+# pull numbers from after a decimal place #
+versus <- versus %>% dplyr::mutate(pointsa = str_extract(scorea, "[^.]+$"))
 
-# pull numbers from after a decimal place 
-champ <- champ %>% dplyr::mutate(pointsb = str_extract(scoreb, "[^,]+$"))
+# team b #
+versus <- versus %>% dplyr::mutate(goalsb = str_extract(scoreb, "^[^.]+"))
 
-# change to numeric
-
-champ$goalsa <- as.numeric(champ$goalsa)
-champ$goalsb <- as.numeric(champ$goalsb)
-champ$pointsa <- as.numeric(champ$pointsa)
-champ$pointsb <- as.numeric(champ$pointsb)
+# pull numbers from after a decimal place #
+versus <- versus %>% dplyr::mutate(pointsb = str_extract(scoreb, "[^.]+$"))
 
 
-# You can just change the 5 to a 3 to keep it as normal 
+## Total Scores ## 
 
-champ <- champ%>%group_by(teama)%>%mutate(totgolsa = ifelse(champyear < 1896, goalsa * 5, goalsa *3), totgolsb = ifelse(champyear < 1896, goalsb * 5, goalsb *3), 
-                                      totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
+# change the columns to numeric #
+
+versus$goalsa <- as.numeric(versus$goalsa)
+versus$goalsb <- as.numeric(versus$goalsb)
+versus$pointsa <- as.numeric(versus$pointsa)
+versus$pointsb <- as.numeric(versus$pointsb)
+
+
+# Values for goals #
+
+# This line allows for changing the value of a goal based on the year - if needed #
+
+#versus <- versus%>%group_by(TeamA)%>%mutate(totgolsa = ifelse(year < 1896, goalsa * 5, goalsa *3), totgolsb = ifelse(year < 1896, goalsb * 5, goalsb *3),totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
+
+# if not needed then use this line. It will sum the values # 
+
+versus <- versus%>%group_by(teama)%>%mutate(totgolsa = (goalsa *3), totgolsb = (goalsb *3), 
+totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
 
 # won/loss
-champ <- champ%>%group_by(teama) %>% mutate(won = ifelse(totscrsa > totscrsb , teama, "Draw"))
-champ <- champ%>%group_by(teama) %>% mutate(loss = ifelse(totscrsb < totscrsa , teamb, "Draw"))
+versus <- versus%>%group_by(teama) %>% mutate(won = ifelse(totscrsa > totscrsb , teama, "Draw"))
+versus <- versus%>%group_by(teama) %>% mutate(loss = ifelse(totscrsb < totscrsa , teamb, "Draw"))
 
-# change wo na's to nan
+# Draw 
+versus <- versus%>%group_by(teama) %>% mutate(won = ifelse(scorea == "Draw","Draw", won))
+versus <- versus%>%group_by(teamb) %>% mutate(loss = ifelse(scoreb == "Draw","Draw", loss))
+
+# change wo na's to nan #
 na_to_space <- function(x) ifelse(is.na(x),"NAN",x)
-champ <- champ %>% mutate_if(.predicate = is.character,.funs = na_to_space)
+versus <- versus %>% mutate_if(.predicate = is.character,.funs = na_to_space)
 
-# replace na's with 0
-champ [is.na(champ)] <- 0
+# replace na's with 0 #
+versus [is.na(versus)] <- 0
 
 
-# change nan to win/loss team
-champ <- champ %>%group_by(teama) %>% mutate(won= ifelse(won == "NAN",teama,won), loss = ifelse(loss == "NAN",teamb,loss))
+# change nan to win/loss team #
+versus <- versus %>%group_by(teama) %>% mutate(won= ifelse(won == "NAN",teama,won), loss = ifelse(loss == "NAN",teamb,loss))
 
-champ <- champ %>% mutate(margin =(abs(totscrsa - totscrsb)))
+## Creating a winning margin ##
 
-## merge these into one list ## 
+versus <- versus %>% mutate(margin =(abs(totscrsa - totscrsb)))
 
-champ <- champ %>% mutate(game_pts = (totscrsa + totscrsb))
+## Add a total points scored and total scores column ## 
 
-champ <- champ %>% mutate(game_scrs = (goalsa + pointsa + goalsb + pointsb))
+versus <- versus %>% mutate(game_pts = (totscrsa + totscrsb))
 
-champ$gameno <- row.names(champ)
+versus <- versus %>% mutate(game_scrs = (goalsa + pointsa + goalsb + pointsb))
+
+# Add row numbers (if wanted) #
+
+versus$gameno <- row.names(versus)
+
+# View final outcome before saving # 
+
+#view (versus)
+
+
+# Save the file as a csv # 
+
+write.csv2(versus, "tippnewres.csv")
+
+
+## Create team list ## 
+
+# Select teams from teama column # 
+teamsA <-  versus %>% select (4)
+
+# Select teams from teamb column # 
+teamsB <-  versus %>% select (6)
+
+# Bind both columns to make one column # 
+
+teams <- bind_rows(teamsA,teamsB)
+
+# Keep first column # 
+teams <- teams %>% select (1)
+
+# Remove all duplicates # 
+
+teams <- teams[!duplicated(teams[,c('teama')]),]
+
+
+# Rename column #
+
+teams <- rename(teams, teams = teama)
+
+# Sort alphabetically #
+
+teams <- teams %>% group_by(teams) %>% arrange (teams)
+
+
+# View final outcome before saving # 
+
+#view (teams)
+
+# Save as a csv file #
+
+write.csv2(teams, "tippnewteam.csv")
+
