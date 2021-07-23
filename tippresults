@@ -44,7 +44,7 @@ attach (teams)
 # This removes the numbers column that occurs when saving the intial csv # 
 versus <-  versus %>% select (-1)
 
-
+teams <-  teams %>% select (-1)
 
 ```
 
