@@ -1,12 +1,14 @@
 # shinytables
-Code for results tables
+### Code for results tables ### 
 
 
 # Getting Started #
 
-# Down load data from #
+# Download initiial data from #
 
-## https://docs.google.com/spreadsheets/d/1i6bk46AiEnC9bT_E0HJkdrq6qSE8mkMsKveo9FmztwE/edit?usp=sharing
+## https://docs.google.com/spreadsheets/d/1i6bk46AiEnC9bT_E0HJkdrq6qSE8mkMsKveo9FmztwE/edit?usp=sharing ##
+
+### Also contains pre-cleaned data and team list if you dont want to do the cleaning ## 
 
 ### Data kindly shared by brian mcdonnell @sixtwofourtwo ### 
 
@@ -29,5 +31,7 @@ Code for results tables
 ## Copy and paste in code (You may need to fix the indentation at the top)##
 ## Add the Path to saved data (The data you created in the cleaning section) ## 
 ## Press 'Run Document' to launch the dashboard ## 
+
+### There is also a table on version of that doesnt include the boxes ###
 
 
