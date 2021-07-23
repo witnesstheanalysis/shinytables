@@ -1,0 +1,90 @@
+---
+title: "Tipperary Senior Hurling Championship 1887-2020"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    orientation: columns
+    navbar:
+      - { title: "DATA AND CODES", href: "PUT A LINK HERE", align: right}
+      - { icon: "fa-twitter", href: "PUT A TWITTER LINK HERE", align: right}
+runtime: shiny      
+    
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+
+## Getting Started ## 
+
+# To run open a rmarkdown document #
+# Select from Template #
+# Select flexdashboard and copy and paste in code #
+# Press 'Run Document' to launch the dashboard # 
+
+## Load packages##
+suppressPackageStartupMessages(library(flexdashboard))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(DT))
+
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+```{r}
+
+## Load the data ## 
+## tippnewres.csv ##
+versus <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
+attach (versus) 
+
+
+## tippnewteam.csv ## 
+teams <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
+attach (teams) 
+
+# This removes the numbers column that occurs when saving the intial csv # 
+versus <-  versus %>% select (-1)
+
+
+
+```
+
+RESULTS {data-orientation=rows}
+=====================================  
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+### Select 
+
+```{r}
+
+# Create the drop down menus #
+
+selectInput('vsteam', 'Team',   choices = c("All",unique(teams$team)),selected = "All")
+
+selectInput('vsopp', 'Opponent',  choices = c("All",unique(teams$team)),selected = "All")
+
+selectInput('vsyear', 'Year',   choices = c("All",unique(versus$year)),selected = "All")
+
+```
+
+Row{data-height=100,data-width=850}
+-----------------------------------------------------------------------
+
+```{r}
+
+# Create a data table, remove some columns and rename the columns #
+
+valuesvs <- reactive({versus %>% filter (input$vsyear == "All" |year == input$vsyear, 
+                                         input$vsteam == "All"|teama == input$vsteam|teamb == input$vsteam,
+                                         input$vsopp == "All"|teama == input$vsopp|teamb == input$vsopp)%>% 
+                                         select(-2,-21) %>% 
+                                         rename( "team A" = teama, "team B" = teamb,"Score A" = scorea, "Score B" = scoreb ,"Total A" = totscrsa, "Total B" = totscrsb,
+                                                 "Game Points" = game_pts, "Game Scores" = game_scrs) %>% rename_all(toupper)})
+
+
+# Select the how many rows are shown on the table and the page lenght options  # 
+  
+renderDataTable({datatable(valuesvs(),options = list(lengthMenu = c(5, 15, 30, 50), pageLength = 15), rownames = TRUE)})
+```
