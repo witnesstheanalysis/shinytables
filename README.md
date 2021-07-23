@@ -4,7 +4,7 @@
 
 # Getting Started #
 
-# Download initiial data from #
+# Download initial data from #
 
 ## https://docs.google.com/spreadsheets/d/1i6bk46AiEnC9bT_E0HJkdrq6qSE8mkMsKveo9FmztwE/edit?usp=sharing ##
 
@@ -32,6 +32,6 @@
 ## Add the Path to saved data (The data you created in the cleaning section) ## 
 ## Press 'Run Document' to launch the dashboard ## 
 
-### There is also a table on version of that doesnt include the boxes ###
+### There is also a table only version of that doesnt include the boxes ###
 
 
