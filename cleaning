@@ -5,7 +5,7 @@
 
 ## How to Install a Package if needed ##
 
-#install.packages("PACKAGENAME")
+#install.packages("packagename")
 
 ## Load Packages ##
 
@@ -16,16 +16,16 @@ library(tidytext)
 
 ## Loading Data ## 
 
-versus <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
-attach (versus) 
+cleaning <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
+attach (cleaning) 
 
-# To view the initial data (Remove '#' from #view (versus) ) # 
+# To view the initial data (Remove '#' from #view (cleaning) ) # 
 
-# view (versus) - this opens another tab #
+# view (cleaning) - this opens another tab #
 
 # Removing the objections column #
 
-versus <-  versus %>% select (-8)
+cleaning <-  cleaning %>% select (-8)
 
 # Removing fadas etc #
 # Replace walkover and scratch to wo won and wo loss #  
@@ -33,7 +33,7 @@ versus <-  versus %>% select (-8)
 # Using detect to find the string that contained the word to Remove County Tipperary SHC () # 
 
 
-versus <-versus %>% mutate (
+cleaning <-cleaning %>% mutate (
   teama = str_replace_all(teama, "'", " "),
   teama = str_replace_all(teama, "á", "a"),
   teama = str_replace_all(teama, "í", "i"),
@@ -60,89 +60,89 @@ versus <-versus %>% mutate (
 
 # pull numbers from before a decimal place #
 
-versus <- versus %>% dplyr::mutate(goalsa = str_extract(scorea, "^[^.]+"))
+cleaning <- cleaning %>% dplyr::mutate(goalsa = str_extract(scorea, "^[^.]+"))
 
 # pull numbers from after a decimal place #
-versus <- versus %>% dplyr::mutate(pointsa = str_extract(scorea, "[^.]+$"))
+cleaning <- cleaning %>% dplyr::mutate(pointsa = str_extract(scorea, "[^.]+$"))
 
 # team b #
-versus <- versus %>% dplyr::mutate(goalsb = str_extract(scoreb, "^[^.]+"))
+cleaning <- cleaning %>% dplyr::mutate(goalsb = str_extract(scoreb, "^[^.]+"))
 
 # pull numbers from after a decimal place #
-versus <- versus %>% dplyr::mutate(pointsb = str_extract(scoreb, "[^.]+$"))
+cleaning <- cleaning %>% dplyr::mutate(pointsb = str_extract(scoreb, "[^.]+$"))
 
 
 ## Total Scores ## 
 
 # change the columns to numeric #
 
-versus$goalsa <- as.numeric(versus$goalsa)
-versus$goalsb <- as.numeric(versus$goalsb)
-versus$pointsa <- as.numeric(versus$pointsa)
-versus$pointsb <- as.numeric(versus$pointsb)
+cleaning$goalsa <- as.numeric(cleaning$goalsa)
+cleaning$goalsb <- as.numeric(cleaning$goalsb)
+cleaning$pointsa <- as.numeric(cleaning$pointsa)
+cleaning$pointsb <- as.numeric(cleaning$pointsb)
 
 
 # Values for goals #
 
 # This line allows for changing the value of a goal based on the year - if needed #
 
-#versus <- versus%>%group_by(TeamA)%>%mutate(totgolsa = ifelse(year < 1896, goalsa * 5, goalsa *3), totgolsb = ifelse(year < 1896, goalsb * 5, goalsb *3),totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
+#cleaning <- cleaning%>%group_by(TeamA)%>%mutate(totgolsa = ifelse(year < 1896, goalsa * 5, goalsa *3), totgolsb = ifelse(year < 1896, goalsb * 5, goalsb *3),totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
 
 # if not needed then use this line. It will sum the values # 
 
-versus <- versus%>%group_by(teama)%>%mutate(totgolsa = (goalsa *3), totgolsb = (goalsb *3), 
+cleaning <- cleaning%>%group_by(teama)%>%mutate(totgolsa = (goalsa *3), totgolsb = (goalsb *3), 
 totscrsa = (totgolsa + pointsa), totscrsb = (totgolsb + pointsb))
 
 # won/loss
-versus <- versus%>%group_by(teama) %>% mutate(won = ifelse(totscrsa > totscrsb , teama, "Draw"))
-versus <- versus%>%group_by(teama) %>% mutate(loss = ifelse(totscrsb < totscrsa , teamb, "Draw"))
+cleaning <- cleaning%>%group_by(teama) %>% mutate(won = ifelse(totscrsa > totscrsb , teama, "Draw"))
+cleaning <- cleaning%>%group_by(teama) %>% mutate(loss = ifelse(totscrsb < totscrsa , teamb, "Draw"))
 
 # Draw 
-versus <- versus%>%group_by(teama) %>% mutate(won = ifelse(scorea == "Draw","Draw", won))
-versus <- versus%>%group_by(teamb) %>% mutate(loss = ifelse(scoreb == "Draw","Draw", loss))
+cleaning <- cleaning%>%group_by(teama) %>% mutate(won = ifelse(scorea == "Draw","Draw", won))
+cleaning <- cleaning%>%group_by(teamb) %>% mutate(loss = ifelse(scoreb == "Draw","Draw", loss))
 
 # change wo na's to nan #
 na_to_space <- function(x) ifelse(is.na(x),"NAN",x)
-versus <- versus %>% mutate_if(.predicate = is.character,.funs = na_to_space)
+cleaning <- cleaning %>% mutate_if(.predicate = is.character,.funs = na_to_space)
 
 # replace na's with 0 #
-versus [is.na(versus)] <- 0
+cleaning [is.na(cleaning)] <- 0
 
 
 # change nan to win/loss team #
-versus <- versus %>%group_by(teama) %>% mutate(won= ifelse(won == "NAN",teama,won), loss = ifelse(loss == "NAN",teamb,loss))
+cleaning <- cleaning %>%group_by(teama) %>% mutate(won= ifelse(won == "NAN",teama,won), loss = ifelse(loss == "NAN",teamb,loss))
 
 ## Creating a winning margin ##
 
-versus <- versus %>% mutate(margin =(abs(totscrsa - totscrsb)))
+cleaning <- cleaning %>% mutate(margin =(abs(totscrsa - totscrsb)))
 
 ## Add a total points scored and total scores column ## 
 
-versus <- versus %>% mutate(game_pts = (totscrsa + totscrsb))
+cleaning <- cleaning %>% mutate(game_pts = (totscrsa + totscrsb))
 
-versus <- versus %>% mutate(game_scrs = (goalsa + pointsa + goalsb + pointsb))
+cleaning <- cleaning %>% mutate(game_scrs = (goalsa + pointsa + goalsb + pointsb))
 
 # Add row numbers (if wanted) #
 
-versus$gameno <- row.names(versus)
+cleaning$gameno <- row.names(cleaning)
 
 # View final outcome before saving # 
 
-#view (versus)
+#view (cleaning)
 
 
 # Save the file as a csv # 
 
-write.csv2(versus, "tippnewres.csv")
+write.csv2(cleaning, "tippnewres.csv")
 
 
 ## Create team list ## 
 
 # Select teams from teama column # 
-teamsA <-  versus %>% select (4)
+teamsA <-  cleaning %>% select (4)
 
 # Select teams from teamb column # 
-teamsB <-  versus %>% select (6)
+teamsB <-  cleaning %>% select (6)
 
 # Bind both columns to make one column # 
 
@@ -172,4 +172,3 @@ teams <- teams %>% group_by(teams) %>% arrange (teams)
 # Save as a csv file #
 
 write.csv2(teams, "tippnewteam.csv")
-
