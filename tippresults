@@ -25,7 +25,6 @@ suppressPackageStartupMessages(library(flexdashboard))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(DT))
 
-
 options(dplyr.summarise.inform = FALSE)
 
 ```
@@ -33,11 +32,12 @@ options(dplyr.summarise.inform = FALSE)
 ```{r}
 
 ## Load the data ## 
+## tippnewres.csv ##
 versus <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
 attach (versus) 
 
 
-
+## tippnewteam.csv ## 
 teams <- read.csv(file="PATHTOFILE.csv", header=TRUE, sep=",")
 attach (teams) 
 
