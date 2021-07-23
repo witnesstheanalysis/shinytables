@@ -18,7 +18,7 @@
 # Cleaning # 
 
 ## Select an rscript ## 
-## Paste in data ## 
+## Paste in code (from cleaning) ## 
 ## Add the Path to saved data ## 
 ## Select all ##
 ## Press Run ## 
@@ -28,7 +28,7 @@
 ## To run open a rmarkdown document ##
 ## Select from Template ##
 ## Select flexdashboard ##
-## Copy and paste in code (You may need to fix the indentation at the top)##
+## Copy and paste in code (from tippresults - You may need to fix the indentation at the top)##
 ## Add the Path to saved data (The data you created in the cleaning section) ## 
 ## Press 'Run Document' to launch the dashboard ## 
 
