@@ -25,7 +25,8 @@ Code for results tables
 
 ## To run open a rmarkdown document ##
 ## Select from Template ##
-## Select flexdashboard and copy and paste in code ##
+## Select flexdashboard ##
+## Copy and paste in code (You may need to fix the indentation at the top)##
 ## Add the Path to saved data ## 
 ## Press 'Run Document' to launch the dashboard ## 
 
