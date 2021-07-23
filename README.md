@@ -27,7 +27,7 @@ Code for results tables
 ## Select from Template ##
 ## Select flexdashboard ##
 ## Copy and paste in code (You may need to fix the indentation at the top)##
-## Add the Path to saved data ## 
+## Add the Path to saved data (The data you created in the cleaning section) ## 
 ## Press 'Run Document' to launch the dashboard ## 
 
 
