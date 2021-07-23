@@ -10,7 +10,7 @@
 
 ### Also contains pre-cleaned data and team list if you dont want to do the cleaning ## 
 
-### Data kindly shared by brian mcdonnell @sixtwofourtwo ### 
+### Data kindly shared by brian mcdonnell https://twitter.com/sixtwofourtwo ### 
 
 
 # In Rstudio #
